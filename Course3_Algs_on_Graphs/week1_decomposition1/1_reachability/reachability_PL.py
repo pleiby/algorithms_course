@@ -4,18 +4,25 @@ import sys
 
 def reach(adj, x, y):
     #write your code here
-    print("Hello!\n")
-    print("(x,y) = (", x, ",", y,")")
-    print("adj =", adj)
-    visited = [False for i in range(len(adj))]
+    #print("Hello!")
+    #print("Seek to connect (x,y) = (", x, ",", y,")")
     # adj is a list over vertices, of lists of adjacencies for each vertex
-    for ver in adj:
-        # print(index(ver)+1, end=": ")
-        for edge in ver: # or enumerate(ver):
-            print(edge+1, end =" ")
-        print()
-    
-    return 0
+    #print(x, end =": ")
+    #for edge in adj[x]: # or enumerate(ver):
+    #    print(edge, end =" ")
+    #print()
+    result = 0
+    visited[x] = True
+    #print("Visited =", visited)
+    for edge in adj[x]: # or enumerate(ver):
+        if edge == y:
+            result = 1
+        else:
+            if (not visited[edge]):
+                result = reach(adj, edge, y)
+        if (result==1):
+            break
+    return result
 
 """
 Starts by reading a graph.
@@ -46,4 +53,6 @@ if __name__ == '__main__':
     for (a, b) in edges:
         adj[a - 1].append(b - 1)
         adj[b - 1].append(a - 1)
+    visited = [False for i in range(len(adj))]
+    # print("For graph with adjacencies adj =", adj)
     print(reach(adj, x, y))
