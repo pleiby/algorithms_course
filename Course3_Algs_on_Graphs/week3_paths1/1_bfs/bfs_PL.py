@@ -80,37 +80,6 @@ def DFS(): # adj is the list of vertices in graph G
 
 #=============================================
 
-import networkx as nx
-# see: https://www.python-course.eu/networkx.php
-import matplotlib.pyplot as plt
-
-
-def build_nx_Graph(adj):
-    G = nx.Graph()
-    for v in range(len(adj)): # ?Fix again, assumes sequential node numbering
-        G.add_node(str(v)) # nx.Graphs likes all nodes to be referenced as string labels
-
-    for v in range(len(adj)): # ?Fix again, assumes sequential node numbering
-        for u in adj[v]:
-            G.add_edge(str(v),str(u))
-
-    return(G)
-
-def print_nx_Graph(G):
-    print("Nodes of graph: ")
-    print(G.nodes())
-    print("Edges of graph: ")
-    print(G.edges())
-
-
-def plotGraph(adj):
-    G = build_nx_Graph(adj)
-    nx.draw(G)
-
-# plotGraph(adj)
-
-#=============================================
-
 # Queue in Python can be implemented by the following ways <https://www.geeksforgeeks.org/queue-in-python/>:
 # list:
 #   q = [] # initialize 
@@ -160,6 +129,7 @@ def show_queue(Q):
     print()
 
 #=============================================
+
 
 def BFS(adj,s):
     """Breadth First Search of a graph
@@ -221,8 +191,9 @@ def parse_input_to_G_s_and_t(inputtext):
 # (that is, the minimum number of edges in a path from 𝑢 to 𝑣).
 
 if __name__ == '__main__':
-    debug = True
-    (adj, s, t) = parse_input_to_G_s_and_t(sample_undigraph2)
-    # (adj, s, t) = parse_input_to_G_s_and_t(sys.stdin.read())
+    debug = False
+    # (adj, s, t) = parse_input_to_G_s_and_t(sample_undigraph2)
+    (adj, s, t) = parse_input_to_G_s_and_t(sys.stdin.read())
     print(distance(adj, s, t))
+
 
