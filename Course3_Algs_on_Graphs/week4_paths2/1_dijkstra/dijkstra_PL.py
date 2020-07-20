@@ -188,7 +188,7 @@ def BFS(adj,s):
     
     return(dist)
 
-def distance(adj, s, t):
+def distanceBFS(adj, s, t):
     #write your code here
     dist = BFS(adj,s)
     if dist[t] < (len(adj)+1): # warning: need to check for t outside range of nodes in dist
@@ -244,7 +244,7 @@ def make_queue(V):
         H.append([i, approxInf])
     return(H)
 
-def extract_min(H):
+def extract_minOld(H):
     minDist = approxInf
     u = None
     for v in H:
@@ -253,7 +253,7 @@ def extract_min(H):
             u = v
     return(H.pop(u))
 
-def extract_minAlt(H):
+def extract_min(H):
     minDist = approxInf
     u = None
     i = 0
@@ -268,7 +268,7 @@ def extract_minAlt(H):
 
 def dijkstra(adj, cost, s, t):
     """
-        **Dijkstra(G, S)**
+    **Dijkstra(G, S)**
     """
 
     # for all u∈V:
@@ -285,19 +285,23 @@ def dijkstra(adj, cost, s, t):
     # the set of unknown vertices
     H = make_queue(V)
 
-    while len(H) > 0 # H is not empty:
-        (u, dist) = extract_min(H)
+    while len(H) > 0: # H, set of unknown vertices is not empty:
+        (u, dist, hasattr) = extract_min(H)
         # Lemma: When a node u is selected via ExtractMin, dist[u] = d(S,u), minimum distance.
-        for i in length(adj[u])) # for all (u,v) ∈ E: # relax _outgoing_ edges from u
+        for i in len(adj[u]): # for all (u,v) ∈ E: # relax _outgoing_ edges from u
             v = adj[u][i] # v in adj[u]
-            if dist[v] > dist[u] + cost[u] # + w(u,v):
-                dist[v] ← dist[u] + w(u,v)
-                prev[v] ← u
-                ChangePriority(H , v , dist [v])
+            if dist[v] > (dist[u] + cost[u][i]): # + w(u,v):
+                dist[v] = dist[u] + cost[u][i] #+ w(u,v)
+                prev[v] = u
+                # ChangePriority(H , v , dist [v]) # rather than priority queue, just scanning array
 
 def distance(adj, cost, s, t):
     #write your code here
-    return -1
+    dist_to_t = dijkstra(adj, cost, s, t):
+    if dist[t] < approxInf:
+        return dist[t]
+    else:
+        return -1
 
 # Task. Given an directed graph with positive edge weights and
 #   with 𝑛 vertices and 𝑚 edges as well as two vertices 𝑢 and 𝑣,
