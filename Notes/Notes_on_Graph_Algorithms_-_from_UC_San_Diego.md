@@ -447,3 +447,120 @@ Week 4 Paths in Graphs: Fastest Route
             Save y ← x
             go x ← prev[x]
              until x = y again
+
+Week 5 Spanning Trees: Efficient Algorithms
+---------------------------
+
+### Minimum Spanning Trees
+- idea is from an (Connected, Undirected) Graph to build a network of selected edges that connects all nodes (is "spanning" over all nodes) that is efficient in the sense of having "minimum" total edge weight.
+- so it is minimum and spanning
+- **Minimum spanning tree (MST)**
+    - Input: A connected, undirected graph G = (V,E) with positive edge
+weights.
+    - Output: A subset of edges E' ⊆ E of **minimum total weight** such that
+the graph G(V, E') is **connected**.
+    - Remark: The set E' always forms a **tree**.
+- Properties of a tree
+    - tree = undirected, connected, acyclic graph
+    - tree with N vertices has N-1 edges
+    - any connected, acyclic graph with N-1 edges is a tree
+    - An undirected graph is a tree iff there is a unique path between any pair of its vertices 
+        - (i.e. it is connected (at least one path) and acyclic (at most one path)).
+- Note: A Min Spanning Graph must be acyclic (since for any cycle could remove one edge and still be connected with lower total weight), so it must be a tree
+
+### Greedy Algorithms for Minimum Spanning Tree Problem
+- two efficient Greedy Alg for MST problem: Kruskal and Prim
+    - **Kruskal**: repeatedly add the next edge that is the lightest edge from G that doesn’t produce a cycle
+        - (edges need not be to an connected node yet)
+    - **Prim**: (select a root vertex;) repeatedly select/add the next edge that is the lightest edge that attaches a new vertex to the current tree
+- Both Kruskal and Prim Greedy Algs for MST produce optimal soln
+
+#### Cut property (efficiency of adding shortest edge between two partial portions of a MST)
+- For a graph V(V,E), 
+    - Let 
+        - X ⊆ E be a part of a MST of G(V,E),
+        - S ⊆ V be (a partition) such that no edge of X crosses between S and V − S, and 
+        - e ∈ E be a lightest edge across this partition.
+    - Then X + {e} is a part of some MST.
+
+#### Kruskal's Algorithm for MST
+
+    - **Kruskal’s Algorithm**
+        - Algorithm: repeatedly add to X the next lightest edge e that doesn’t produce a cycle
+        - At any point of time, the set X is a forest, that is, a collection of trees
+        - The next edge e connects two different trees—say, T1 and T2
+        - The edge e is the lightest between T1 and V − T1, hence adding e is safe
+
+- Kruskal Algorithm for MST Implementation Details
+    - use disjoint sets data structure
+    - initially, each vertex lies in a separate set
+    - each set is the set of vertices of a connected component
+    - when checking about adding a new (minimum weight) edge, to check whether the current edge {u,v} produces a cycle, we check whether u and v belong to the same set
+
+- Kruskal Algorithm for MST - Pseudocode
+
+    **Kruskal(G)**
+
+        for all u∈V:
+            MakeSet(v ) # separate set for each node
+        X ← empty set # no edges in the forest of partial MSTs
+        sort the edges E by weight
+        for all {u,v} ∈ E in non-decreasing weight order:
+            if Find(u) <> Find(v): # confirm that they are not in the same connected component (same set)
+                add edge {u,v} to X
+                Union(u, v) # indicate that all nodes of u and v are in same CC
+        return X
+
+- Kruskal Running Time
+    - Running Time
+    - Sorting edges:
+        - O(|E|log|E|) = O(|E|log|V|2) = O(2|E|log|V|) = O(|E|log|V|) 
+    - Processing edges:
+        - 2|E | · T (Find) + |V | · T (Union) = O((|E|+|V|)log|V|) = O(|E|log|V|)
+    - Total running time: 
+        - O(|E|log|V|)
+        - less if edges come pre-sorted, then O(|E|log*|V|
+
+#### Prim’s Algorithm
+X is always a subtree, grows by one edge at each iteration
+we add a lightest edge between a vertex of the tree and a vertex not in the tree
+very similar to Dijkstra’s algorithm
+
+- Prim's Algoritym Pseudocode
+
+    **Prim’s Algorithm**
+    - Prim(G )
+    - for all u∈V:
+        cost[u] ← ∞, 
+        parent[u] ← nil
+    pick any initial vertex u0
+    cost[u0] ← 0
+    PrioQ ← MakeQueue(V ) {priority is cost} 
+    while PrioQ is not empty:
+        v ← ExtractMin(PrioQ) for all {v,z} ∈ E:
+        if z ∈ PrioQ and cost[z] > w(v, z): 
+            cost[z] ← w(v, z), parent[z] ← v 
+            ChangePriority(PrioQ , z , cost [z ])
+
+- Prim's Algorithm for MST - Running Time
+- Running Time
+    - the running time is
+    - |V|·T(ExtractMin)+|E|·T(ChangePriority) 
+    - for array-based implementation, the running time is 
+        - O(|V |2)
+    - for binary heap-based implementation, the running time is
+        -O((|V| + |E|) log|V|) = O(|E| log|V|)
+
+
+#### Summary
+- Kruskal MST Greedy Alg: 
+    - repeatedly add the next lightest edge if this doesn’t produce a cycle; 
+    - use disjoint sets to check whether the current edge joins two vertices from different components
+- Prim's MST Greedy Alg: 
+    - repeatedly attach a new vertex to the current tree by a lightest edge; 
+    - use priority queue to quickly find the next lightest edge
+
+
+Data Structure and Algorithm Visualizations
+--------------------------------------------
+- [Data Structure and Algorithm Visualizations, Galles, U. San Fran.](https://www.cs.usfca.edu/~galles/visualization/Algorithms.html)
