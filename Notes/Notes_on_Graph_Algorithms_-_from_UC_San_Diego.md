@@ -564,3 +564,157 @@ very similar to Dijkstra’s algorithm
 Data Structure and Algorithm Visualizations
 --------------------------------------------
 - [Data Structure and Algorithm Visualizations, Galles, U. San Fran.](https://www.cs.usfca.edu/~galles/visualization/Algorithms.html)
+
+Week 6 Advanced Shortest Paths
+--------------------------------
+
+### Bidirectional Search
+- Dijkstra goes in “circles”
+- Bidirectional search idea can reduce the search space
+- Roughly 2x speedup for road networks
+   - roughly sqrt(N)
+-  Meet-in-the-middle —
+- 1000 times faster for social networks
+
+### Bidirectional Dijkstra algorithm
+- Review Dijkstra
+    - Steps
+        - Initialize dist[s] to 0, all other distances to ∞
+        - ExtractMin — choose unprocessed u with the smallest dist[u]
+        - Process u — Relax the edges outgoing from u
+        - Repeat until t is processed
+    - ExtractMin step assures 
+        - that estimated distance to node extracted at that point is indeed actual min
+        - that nodes are generally explored in order of their distance from the source S
+- Notion of Reverse Graph
+- For graph G, reversed graph G^R has:
+    - same vertices V, and 
+    - reversed edges E^R: (u,v) in E iff (v, u) in E^R
+- Bidirectional Dijkstra
+    - Given G, build G^R
+    - Start Dijsktra (forward) from s in G (forward)
+    - Start Dijkstra (forward) from t in G^R (but effectively backward for original problem)
+    - Alternate between Dijkstra steps in G and G^R [is strict alternation important?]
+    - Continue until find vertex v which is processed in both G and G^R
+    - Compute the shortest path between s and t (but note this need not be the path through v)
+
+- Computing Distance Lemma
+    - Let dist[u] be the distance _estimate_ in the forward Dijkstra from s in G and distR[u] — the same in the backward Dijkstra from t in GR. [algorithm is such that all nodes have a distance estimate, but if it has not been processed]
+    - After some node v is processed both in G and GR, some shortest path from s to t passes through some node u which is processed either in G, in GR, or both, and d(s,t) = dist[u] + distR[u].
+
+- Bidirectional Dijkstra Pseudocode (long)
+
+    - **BidirectionalDijkstra(G , s , t )**
+GR ← ReverseGraph(G)
+Fill dist,distR with +∞ for each node dist[s] ← 0, distR [t] ← 0
+Fill prev,prevR with None for each node proc ← empty, procR ← empty
+do:
+    v ← ExtractMin(dist)
+    Process(v , G , dist, prev, proc)
+    if v in procR:
+        return ShortestPath(s, dist, prev, proc, t, . . . ) 
+        vR ← ExtractMin(distR)
+    repeat symmetrically for vR as for v
+while True
+
+**Relax(u, v , dist, prev)**
+if dist[v]>dist[u]+w(u,v):
+    dist[v] ← dist[u] + w(u, v)
+    prev[v] ← u
+
+**Process(u, G , dist, prev, proc)**
+for (u,v)∈E(G): 
+    Relax(u, v , dist, prev)
+proc.Append(u)
+
+**ShortestPath(s, dist, prev, proc, t, distR , prevR , procR )**
+distance ← +∞, ubest ← None 
+for u in proc+procR:
+    if dist[u]+distR[u] < distance:
+        ubest ← u
+        distance ← dist[u] + distR [u] 
+path ← empty
+last ← ubest 
+while last ̸= s:
+    path.Append(last)
+    last ← prev[last] 
+path ← Reverse(path) 
+last ← ubest
+while last ̸= t:
+    last ← prevR[last]
+    path.Append(last) 
+return (distance,path)
+
+
+- Conclusion on Bidirectional Dijkstra
+    - Worst-case running time of Bidirectional Dijkstra is the same as for Dijkstra
+    - Speedup in practice depends on the graph
+    - Memory consumption is 2x to store G and GR
+    - You’ll see the speedup on social network graph in the Programming Assignment
+
+
+- Visualizations
+  - [Path Finding Algorithms (A*, Dijkstra, Bi-Directional BFS)](https://www.youtube.com/watch?v=DINCL5cd_w0)
+
+### Advanced Shortest Paths: A-star Algorithm (A*)
+- for more, see [A* search algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm)
+
+#### Seeking a Directed Search
+- utilizing bounds on path lengths
+- Potential Function
+
+- A* Algorithm is Dijkstra with Potentials
+- Potential are lower bounds on distance, hence can guide search _direction_ ("Directed Seargh"
+
+- Dijkstra wi th Potentials
+Take some potential function 𝜋 Launch Dijkstra algorithm with edge
+weights l𝜋
+The resulting shortest path is also a
+shortest path initially Does any 𝜋 fit us?
+For any edge (u,v), the new length l𝜋(u,v) must be non-negative — such 𝜋 is called feasible
+
+- Intuition
+𝜋(v) is an estimation of d(v,t) — “how far is it from here to t?”
+If we have such estimation, we can often avoid going wrong direction — directed search
+Typically 𝜋(v) is a lower bound on d(v,t) I.e.,onarealmapapathfromv tot cannot be shorter than the straight line segment from v to t
+
+- A* ≡ Dijkstra 
+    - On each step, pick the vertex v minimizing dist[v] − 𝜋(s) + 𝜋(v)
+    - 𝜋(s) is the same for all v, so v minimizes dist[v ] + 𝜋(v ) — the most promising vertex
+    - 𝜋(v) is an estimate of d(v, t)
+    - Pick the vertex v with the minimum current estimate of d(s,v)+ d(v,t) 
+    - Thus the search is "directed"
+- Idea is that while this alg could still explore whole graph, it is more likely to reach the target node t earlier, by exploring in more promising directions.
+
+- Subtract the potential (lower bound fn) from the XXX
+
+### Bidirectional A* Algorithm for MSP
+- need 2 potential
+- need to make them consistent in some way, i.e. to imply the same edge weights (lengths) in both directions (so that bidirectional seach will work)
+
+### Lower Bounds (for Potential Functions)
+- feasibility $l_\pi(x,y) \ge 0$
+- l_/pi(P) = 
+    - l_𝜋(u,v) = l(u, v) − 𝜋(u) + 𝜋(v)
+    - 0 ≤ l𝜋(P) = l(P) − 𝜋(v) + 𝜋(t) ≤ l(P) − 𝜋(v) 
+        - ⇒ 𝜋(v) ≤ l(P) = d(v,t)
+- Euclidean Distance Potential
+    - feasible and \pi(t) = 0
+- Landmark Distance Potential
+    - Lemma
+        - Fix some vertex A ∈ V , we will call it a landmark. 
+        - Then the "Landmark" potential 𝜋(v) = d(A, t) − d(A, v) 
+            - is feasible, and 𝜋(t) = 0.
+    - Landmark selection?
+        - On borders of map
+    - Landmarks require preprocessing: need distance from landmark(s) to all other vertices
+        - worthwhile if expect many queries on distances between other nodes
+    
+- A* with Landmarks
+
+- Conclusion
+    - Directed search can scan fewer vertices
+    - A* is a directed search algorithm based on Dijkstra and potential functions
+    - A* can also be bidirectional 
+    - Euclidean distance is a potential for aplane (road networks)
+    - Landmarks can be used for good potential function, but we need preprocessing to use them
