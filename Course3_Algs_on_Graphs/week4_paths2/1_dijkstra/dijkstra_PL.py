@@ -12,8 +12,8 @@ sample_undigraph0 = """
 1 4
 2 4
 3 2
-1 3
 """
+# 1 3 Test Source and Terminus
 
 sample_undigraph1 = """
 4 4
@@ -86,6 +86,13 @@ sample_wdigraph3 = """
 1 3 5
 2 3 2
 3 2
+"""
+
+sample_wdigraph4 = """
+3 3
+2 3 9
+1 3 5
+1 2 -2
 """
 
 #=============================================
@@ -211,11 +218,13 @@ def parse_weighted_digraph_input_to_G_s_and_t(inputtext):
         t - terminal node (destination)
     """
     data = list(map(int, inputtext.split()))
-    n, m = data[0:2]
+    n, m = data[0:2] # count of verts and edges
     data = data[2:]
+    # pick off every third element and organize into a m x 3 edge list
     edges = list(zip(zip(data[0:(3 * m):3], data[1:(3 * m):3]), data[2:(3 * m):3]))
     data = data[3 * m:] # last line is (s, t)
-    adj = [[] for _ in range(n)]
+    # following assumes that n vertices are number sequentially 1 to n
+    adj = [[] for _ in range(n)] # list of n lists, one for each node 
     cost = [[] for _ in range(n)] # organize costs like edge list
     for ((a, b), w) in edges:
         adj[a - 1].append(b - 1)
@@ -304,11 +313,13 @@ def distance(adj, cost, s, t):
         return -1
 
 # Task. Given an directed graph with positive edge weights and
-#   with 𝑛 vertices and 𝑚 edges as well as two vertices 𝑢 and 𝑣,
-#   compute the weight of a shortest path between 𝑢 and 𝑣 (that is, the minimum total weight of a path from 𝑢 to 𝑣).
+#   with `n` vertices and 𝑚 edges as well as two vertices `u` and `v`,
+#   compute the weight of a shortest path between `u` and `v`
+#   (that is, the minimum total weight of a path from `u` to `v`).
 # Input Format. A graph is given in the standard format.
-#   The next (final) line contains two vertices 𝑢 and 𝑣.
-
+#   The next (final) line contains two vertices `u` and `v`.
+# Output Format. 
+#  Output the minimum weight of a path from `u` to `v`, or −1 if there is no path.
 
 if __name__ == '__main__':
     debug = False
