@@ -91,3 +91,16 @@ plane (road networks)
 
 - Intuition on Landmark selection?
     - On borders of map
+
+Points to Discuss on Advanced Shortest Path Algs
+------------------------------------------------
+- Large networks with non-sequential node ID numbers and sparse connections (e.g. streets)
+
+study group notes 20200912: objectives for next time
+------------------------------------------------
+- "capstone" for Graphs
+    - implement bidirectional dijkstra (if possible, understand early stopping condition!)
+    - (hopefully) A* with Euclidean distance for potential
+    - Apply either of these to the SF (500K) or Austin (1M edges) data sets
+- Think about next course to start (~after September, 1-2 more graphs meetings), e.g.
+https://computationalthinking.mit.edu/Fall20/
