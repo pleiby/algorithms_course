@@ -1,4 +1,6 @@
 .DS_Store*
+settings.json
 /Literature/*
 *.pdf
+*.png
 Course3_Algs_on_Graphs/Bellman-Ford*
