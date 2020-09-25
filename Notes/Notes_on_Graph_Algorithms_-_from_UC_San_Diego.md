@@ -320,7 +320,7 @@ Week 4 Paths in Graphs: Fastest Route
 - What is the interpretation of the name "edge relaxation?" How is the edge being relaxed?
     - https://stackoverflow.com/questions/10746727/why-do-we-call-it-relaxing-an-edge#:~:text=In%20general%20mathematically%2C%20relaxation%20is,reducing%20the%20number%20of%20constraints.
 
-    - for measured/estimated distance "dist[v]" from source S to v:
+    - for estimated distance "dist[v]" from source S to v:
     - _provided_ the estimate dist[v] is an _upper bound_ on the actual distance d(S,v)
 
         **Relax((u,v) ∈ E)**
@@ -331,10 +331,11 @@ Week 4 Paths in Graphs: Fastest Route
     - Intuition: 
         - edge (u,v) is "relaxed" in the context of distances from source node S
         - edge (u,v) is relaxed in the sense that we are looking for a shortcut to v (from S) via u
-            - "relax edge (u,v)" means "attempt to shorten v's distance to s using u"
+            - "relax edge (u,v)" means "attempt to shorten v's distance to s using edge (u,v)"
             - in OR, relaxation means relaxing a constraint
             - Naive and in Dijkstra relaxation means relaxation of the constraint x_uv = 0?
                 - removing (u,v) from set of edges excluded from the shortest path??
+                - allowing more non-zero variables
 
         **NaiveDistance(G , S)**
         for all u∈V: 
@@ -353,21 +354,23 @@ Week 4 Paths in Graphs: Fastest Route
 #### Dijkstra's Algorithm
 - Main ideas of Dijkstra’s Algorithm
     - maintain a set R of vertices for which dist is already set correctly ("known region").
+        - for w in R: dist[w] = d(s,w)
     - Best to explore (relax edges from) that set of known-distance nodes, 
         - since any node w outside R with new minimum estimate dist[w] will also be its shortest path (correct distance d(s,w))
     - On each iteration we 
-        - take a vertex outside of R with the minimal dist-value, 
+        - take the vertex outside of R with the minimal estimated dist-value, 
         - add it to R, and 
         - relax all its outgoing edges [if digraph, o.w. all its edges?].
-    - Start with including only source vertex S in R (since dist[S] = 0)
+    - Start with including only source vertex S in R (since dist[S] == 0)
 
 - Dijkstra Algorithm Pseudocode
 
     **Dijkstra(G, S)**
     for all u∈V:
-        dist[u] ← ∞, prev[u] ← nil
+        dist[u] ← ∞, 
+        prev[u] ← nil
     dist[S] ← 0
-    H ← MakeQueue(V ) {dist-values as keys} # this is the Unknown region, not(R)
+    H ← MakeQueue(V ) {dist-values as keys} # this is the Unknown region, H = not(R)
     while H is not empty:
         u ← ExtractMin(H)
         # Lemma: When a node u is selected via ExtractMin, dist[u] = d(S,u).
@@ -408,6 +411,7 @@ Week 4 Paths in Graphs: Fastest Route
     - Dijkstra algorithm relies on fact that shortest path from s to t goes only through vertices that are closer to s than t.
 - Assertion: "All the problems in graphs with negative weights come from negative weight cycles"
     - in which case distances along the path in negative weight cycles all got to negative infinity
+    - so a key idea in finding distances in graphs with negative weights is to identify negative weight cycles
 
 #### Bellman-Ford Algorithm
 - algorithm for finding shortest path in graphs where some edges have negative weight (and cannot use Dijkstra Alborithm)
@@ -415,8 +419,8 @@ Week 4 Paths in Graphs: Fastest Route
     - relax edges where the distance (estimate via upper bound) changes
 - Works with negative weights, but _only_ if there are no negative weight cycles in G
 
-    **Bellman–Ford algorithm**
-    BellmanFord(G , S )
+    **Bellman–Ford algorithm** for distances from source S in graph G
+    BellmanFord(G, S)
     {no negative weight cycles in G}
     for all u∈V:
         dist[u] ← ∞
