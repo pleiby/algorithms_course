@@ -346,6 +346,7 @@ def dijkstra(adj, cost, s, t):
         u = extract_min(H) # [u, d] = extract_min(H)
         # Lemma: When a node u is selected via ExtractMin, dist[u] = d(S,u), actual minimum distance.
         # First node to be extracted will be the source s (since dist[s]==0)
+        # Should we stop early if min node u == t (t is moved to known set R before unknown H is exhausted)?
         for i in range(len(adj[u])): # for all (u,v) ∈ E: Relax(u,v) # relax all _outgoing_ edges from u
             # edge relaxation procedure for an edge (u,v) just checks whether
             #  going from s to v through u improves the current value of dist[v].
@@ -353,12 +354,9 @@ def dijkstra(adj, cost, s, t):
             if dist[v] > (dist[u] + cost[u][i]): # + w(u,v):
                 dist[v] = dist[u] + cost[u][i] # update the distance
                 prev[v] = u # update the predecessor node
-            # if dist[v] > (dist[u] + cost[u][i]): # + w(u,v):
-            #     dist[v] = dist[u] + cost[u][i] # update the distance
-            #     prev[v] = u # update the predecessor node
-                # ChangePriority(H , v , dist [v]) # rather than priority queue, just scanning array for min
+                # ChangePriority(H , v , dist[v]) # rather than priority queue, update dist and scan array for min dist
 
-    return dist[t] # should we stop if node t is moved to known set R before unknown H is exhausted?
+    return dist[t] 
 
 
 def distance(adj, cost, s, t):
