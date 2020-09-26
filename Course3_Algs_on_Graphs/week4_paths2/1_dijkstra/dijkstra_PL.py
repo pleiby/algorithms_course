@@ -2,6 +2,7 @@
 
 import sys
 import queue
+import math
 
 #=============================================
 
@@ -97,7 +98,7 @@ sample_wdigraph4 = """
 
 #=============================================
 
-def DFS(): # adj is the list of vertices in graph G
+def DFS(adj): # adj is the list of vertices in graph G
     """DFS is Depth First Search of (undirected) graph.
     adj is adjacency list for graph. 
     Returns number of distinct connected components."""
@@ -105,7 +106,7 @@ def DFS(): # adj is the list of vertices in graph G
     global cc
     global visited
 
-    for v in range(len(adj)):
+    for v in range(len(adj)): # adjacency list has length == number of nodes
         visited[v] = False
     cc = 1
 
@@ -115,6 +116,7 @@ def DFS(): # adj is the list of vertices in graph G
             # increment connected component count after each return from explore()
             cc = cc + 1 # only increment for each unvisited node explored here
     return cc
+
 
 #=============================================
 
@@ -247,10 +249,17 @@ while H is not empty:
             ChangePriority(H , v , dist [v])
 """
 
+def make_queueOld(V, ds):
+    H = []
+    for i in V:
+        H.append([i, ds[i]])
+        # H.append([i, ds[i]])
+    return(H)
+
 def make_queue(V):
     H = []
     for i in V:
-        H.append([i, approxInf])
+        H.append(i)
     return(H)
 
 def extract_minOld(H):
@@ -262,7 +271,14 @@ def extract_minOld(H):
             u = v
     return(H.pop(u))
 
-def extract_min(H):
+def extract_minOld2(H):
+    """
+    extract_min(H)
+
+    extract the node from queue H with the minimal upper-bound estimate of distance to source s.
+    For this node v, the bound distance dist(v) will be the actual distance d(s,v).
+    Return the min dist node, its distance, and the reduced set H.
+    """
     minDist = approxInf
     u = None
     i = 0
@@ -272,43 +288,84 @@ def extract_min(H):
             u = v
             imin = i
         i += i
-    return(v, d, H.pop(imin))
+    return(H.pop(imin)) # return [u, d]
 
+def extract_min(H):
+    """
+    extract_min(H)
+
+    extract the node from queue H with the minimal upper-bound estimate of distance to source s.
+    For this node v, the bound distance dist(v) will be the actual distance d(s,v).
+    Return the min dist node, its distance, and the reduced set H.
+    """
+    minDist = approxInf
+    u = None
+    i = 0
+    for v in H:
+        if dist[v] <= minDist:
+            minDist = dist[v]
+            u = v
+            imin = i
+        i += i
+    return(H.pop(imin)) # return [u, d]
+
+# In Dijkstra: we generate an SPT (shortest path tree) for a given source `S` as root.
+# The algorithm maintains two sets:
+#  The set H of "unknown" vertices includes vertices that that have not been fully evalated,
+#    and that are not yet included in the shortest-path tree.
+#  The other set/region, R = not(H), contains vertices whose distance to root is correctl known,
+#    and which are included in the shortest-path tree.
 
 def dijkstra(adj, cost, s, t):
     """
-    **Dijkstra(G, S)**
+    **Dijkstra(G, s)**
     """
 
     # for all u∈V:
     #    dist[u] ← ∞, prev[u] ← nil
-    #   dist[S] ← 0
-    V = range(len(adj)) # sequence of nodes
+    #   dist[s] ← 0
+    V = range(len(adj)) # set of nodes, sequentially numbered
     # Note!!: this is not entirely general - there is no quarantee that
     #   the graph node list is sequentially numbered from 0 to n-1
 
-    dist = [approxInf for u in V] # initialize distance to unk for all u∈V
+    # dist[v] will be an upper bound on the actual distance from s to v.
+    dist = [approxInf for u in V] # initialize dist to completely unknown for all u∈V
+    prev = [None for u in V]
+    # visited = [False for u in V]
+
     dist[s] = 0 # zero distance to start node
 
+
     # H ← MakeQueue(V ) {dist-values as keys} # this is the Unknown region, not(R)
-    # the set of unknown vertices
-    H = make_queue(V)
+    # the set of unknown (unvisited, or not fully visited) vertices
+    H = make_queue(V) #, dist)
 
     while len(H) > 0: # H, set of unknown vertices is not empty:
-        (u, dist, hasattr) = extract_min(H)
-        # Lemma: When a node u is selected via ExtractMin, dist[u] = d(S,u), minimum distance.
-        for i in len(adj[u]): # for all (u,v) ∈ E: # relax _outgoing_ edges from u
+        # On each iteration we take a vertex outside of R (in H) with the minimal dist-value,
+        #  add it to R, and relax all its outgoing edges.
+        u = extract_min(H) # [u, d] = extract_min(H)
+        # Lemma: When a node u is selected via ExtractMin, dist[u] = d(S,u), actual minimum distance.
+        # First node to be extracted will be the source s (since dist[s]==0)
+        for i in range(len(adj[u])): # for all (u,v) ∈ E: Relax(u,v) # relax all _outgoing_ edges from u
+            # edge relaxation procedure for an edge (u,v) just checks whether
+            #  going from s to v through u improves the current value of dist[v].
             v = adj[u][i] # v in adj[u]
             if dist[v] > (dist[u] + cost[u][i]): # + w(u,v):
-                dist[v] = dist[u] + cost[u][i] #+ w(u,v)
-                prev[v] = u
-                # ChangePriority(H , v , dist [v]) # rather than priority queue, just scanning array
+                dist[v] = dist[u] + cost[u][i] # update the distance
+                prev[v] = u # update the predecessor node
+            # if dist[v] > (dist[u] + cost[u][i]): # + w(u,v):
+            #     dist[v] = dist[u] + cost[u][i] # update the distance
+            #     prev[v] = u # update the predecessor node
+                # ChangePriority(H , v , dist [v]) # rather than priority queue, just scanning array for min
+
+    return dist[t] # should we stop if node t is moved to known set R before unknown H is exhausted?
+
 
 def distance(adj, cost, s, t):
     #write your code here
-    dist_to_t = dijkstra(adj, cost, s, t):
-    if dist[t] < approxInf:
-        return dist[t]
+    dist_to_t = dijkstra(adj, cost, s, t)
+    if dist_to_t < approxInf:
+        return dist_to_t
     else:
         return -1
 
@@ -327,6 +384,6 @@ if __name__ == '__main__':
     (adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(sample_wdigraph1)
     #(adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(sys.stdin.read())
 
-    approxInf = 1E8 # establish an impossibly far distance, signal upper bound
+    approxInf = math.inf # establish an impossibly far distance, signal upper bound
 
     print(distance(adj, cost, s, t))
