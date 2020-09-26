@@ -585,7 +585,7 @@ Week 6 Advanced Shortest Paths
     - Steps
         - Initialize dist[s] to 0, all other distances to ∞
         - ExtractMin — choose unprocessed u with the smallest dist[u]
-        - Process u — Relax the edges outgoing from u
+        - Process u — Relax the edges outgoing from u (see if we have discovered a shorter way to get to any of the nodes accessible from u)
         - Repeat until t is processed
     - ExtractMin step assures 
         - that estimated distance to node extracted at that point is indeed actual min
@@ -609,45 +609,54 @@ Week 6 Advanced Shortest Paths
 - Bidirectional Dijkstra Pseudocode (long)
 
     - **BidirectionalDijkstra(G , s , t )**
-GR ← ReverseGraph(G)
-Fill dist,distR with +∞ for each node dist[s] ← 0, distR [t] ← 0
-Fill prev,prevR with None for each node proc ← empty, procR ← empty
-do:
-    v ← ExtractMin(dist)
-    Process(v , G , dist, prev, proc)
-    if v in procR:
-        return ShortestPath(s, dist, prev, proc, t, . . . ) 
-        vR ← ExtractMin(distR)
-    repeat symmetrically for vR as for v
-while True
+
+        - GR ← ReverseGraph(G)
+        - Fill dist,distR with +∞ for each node 
+        - dist[s] ← 0, distR [t] ← 0
+        - Fill prev,prevR with None for each node 
+        - proc ← empty, procR ← empty
+        do:
+            v ← ExtractMin(dist)
+            Process(v , G , dist, prev, proc)
+            if v in procR: # exit when find node that has been processed in both directions
+                return ShortestPath(s, dist, prev, proc, t, ...) 
+            vR ← ExtractMin(distR)
+            repeat symmetrically for vR as for v
+        while True
 
 **Relax(u, v , dist, prev)**
-if dist[v]>dist[u]+w(u,v):
-    dist[v] ← dist[u] + w(u, v)
-    prev[v] ← u
+
+        if dist[v] > dist[u] + w(u,v):
+            dist[v] ← dist[u] + w(u,v)
+            prev[v] ← u
 
 **Process(u, G , dist, prev, proc)**
-for (u,v)∈E(G): 
-    Relax(u, v , dist, prev)
-proc.Append(u)
+
+        for (u,v) ∈ E(G): 
+            Relax(u, v, dist, prev)
+        proc.Append(u)
 
 **ShortestPath(s, dist, prev, proc, t, distR , prevR , procR )**
-distance ← +∞, ubest ← None 
-for u in proc+procR:
-    if dist[u]+distR[u] < distance:
-        ubest ← u
-        distance ← dist[u] + distR [u] 
-path ← empty
-last ← ubest 
-while last ̸= s:
-    path.Append(last)
-    last ← prev[last] 
-path ← Reverse(path) 
-last ← ubest
-while last ̸= t:
-    last ← prevR[last]
-    path.Append(last) 
-return (distance,path)
+
+        distance ← +∞, 
+        ubest ← None 
+        # Find the node that has been processed in both directions
+        #   with min total distance to both ends 
+        for u in proc+procR:
+            if dist[u]+distR[u] < distance:
+                ubest ← u
+                distance ← dist[u] + distR [u] 
+        path ← empty
+        last ← ubest 
+        while last  <> s:
+            path.Append(last)
+            last ← prev[last] 
+        path ← Reverse(path) 
+        last ← ubest
+        while last <> t:
+            last ← prevR[last]
+            path.Append(last) 
+        return (distance,path)
 
 
 - Conclusion on Bidirectional Dijkstra
