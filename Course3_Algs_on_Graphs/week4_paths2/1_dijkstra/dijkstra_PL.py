@@ -51,13 +51,6 @@ sample_digraph2 = """
 4 3
 """
 
-sample_wdigraph0 = """
-3 3
-2 3 9
-1 3 5
-1 2 -2
-"""
-
 sample_wdigraph1 = """
 4 4
 1 2 1
