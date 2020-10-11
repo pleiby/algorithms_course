@@ -290,20 +290,22 @@ def extract_minOld2(H):
         i += i
     return(H.pop(imin)) # return [u, d]
 
-def extract_min(H):
+def extract_min(H, ds):
     """
-    extract_min(H)
+    extract_min(H, ds)
 
     extract the node from queue H with the minimal upper-bound estimate of distance to source s.
-    For this node v, the bound distance dist(v) will be the actual distance d(s,v).
-    Return the min dist node, its distance, and the reduced set H.
+    ds distance array is also passed, absent a priority queue implementation.
+    For this node v, the bound distance ds(v) will be the actual distance d(s,v).
+    Return the min dist node, its distance
+    (but not the reduced set H).
     """
     minDist = approxInf
     u = None
     i = 0
     for v in H:
-        if dist[v] <= minDist:
-            minDist = dist[v]
+        if ds[v] <= minDist:
+            minDist = ds[v]
             u = v
             imin = i
         i += i
@@ -343,7 +345,7 @@ def dijkstra(adj, cost, s, t):
     while len(H) > 0: # H, set of unknown vertices is not empty:
         # On each iteration we take a vertex outside of R (in H) with the minimal dist-value,
         #  add it to R, and relax all its outgoing edges.
-        u = extract_min(H) # [u, d] = extract_min(H)
+        u = extract_min(H, dist) # [u, d] = extract_min(H)
         # Lemma: When a node u is selected via ExtractMin, dist[u] = d(S,u), actual minimum distance.
         # First node to be extracted will be the source s (since dist[s]==0)
         # Should we stop early if min node u == t (t is moved to known set R before unknown H is exhausted)?
@@ -379,8 +381,8 @@ def distance(adj, cost, s, t):
 if __name__ == '__main__':
     debug = False
 
-    (adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(sample_wdigraph1)
-    #(adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(sys.stdin.read())
+    #(adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(sample_wdigraph1)
+    (adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(sys.stdin.read())
 
     approxInf = math.inf # establish an impossibly far distance, signal upper bound
 
