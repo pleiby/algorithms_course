@@ -291,7 +291,7 @@ def extract_minOld2(H):
     for (v, d) in H:
         if d <= minDist:
             minDist = d
-            u = v
+            u = v # note that u is unused (instead returned by pop)
             imin = i
         i += i
     return(H.pop(imin)) # return [u, d]
@@ -312,7 +312,7 @@ def extract_min(H, ds):
     for v in H:
         if ds[v] <= minDist:
             minDist = ds[v]
-            u = v
+            u = v # note that u is unused (instead returned by pop)
             imin = i
         i += 1
     return(H.pop(imin)) # return [u, d]
