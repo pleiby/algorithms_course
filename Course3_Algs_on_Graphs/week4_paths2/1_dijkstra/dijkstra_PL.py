@@ -242,7 +242,10 @@ while H is not empty:
             ChangePriority(H , v , dist [v])
 """
 
-def make_queueOld(V, ds):
+def make_queueAlt(V, ds):
+    """
+    Create a queue as list of paired vertices and priorities (distance upper bounds)
+    """
     H = []
     for i in V:
         H.append([i, ds[i]])
@@ -250,12 +253,22 @@ def make_queueOld(V, ds):
     return(H)
 
 def make_queue(V):
+    """
+    Create a queue of paired vertices as a simple list
+    """
     H = []
     for i in V:
         H.append(i)
     return(H)
 
 def extract_minOld(H):
+    """
+    def extract_minOld(H)
+
+    extracts the element (vertex) from list `H` with minimum distance estimate (upper bound).
+    Assumes the queue/list has pairs of vertices and distances.
+    Returns the pair [vertex, distance]
+    """
     minDist = approxInf
     u = None
     for v in H:
@@ -266,7 +279,7 @@ def extract_minOld(H):
 
 def extract_minOld2(H):
     """
-    extract_min(H)
+    extract_minOld2(H)
 
     extract the node from queue H with the minimal upper-bound estimate of distance to source s.
     For this node v, the bound distance dist(v) will be the actual distance d(s,v).
@@ -287,21 +300,21 @@ def extract_min(H, ds):
     """
     extract_min(H, ds)
 
-    extract the node from queue H with the minimal upper-bound estimate of distance to source s.
-    ds distance array is also passed, absent a priority queue implementation.
+    extract the node from queue `H` with the minimal upper-bound estimate of distance to source s.
+    `ds` distance array is also passed, absent a priority queue implementation.
     For this node v, the bound distance ds(v) will be the actual distance d(s,v).
     Return the min dist node, its distance
     (but not the reduced set H).
     """
     minDist = approxInf
-    u = None
+    u = None # min vertex unknown
     i = 0
     for v in H:
         if ds[v] <= minDist:
             minDist = ds[v]
             u = v
             imin = i
-        i += i
+        i += 1
     return(H.pop(imin)) # return [u, d]
 
 # In Dijkstra: we generate an SPT (shortest path tree) for a given source `S` as root.
@@ -313,20 +326,24 @@ def extract_min(H, ds):
 
 def dijkstra(adj, cost, s, t):
     """
-    **Dijkstra(G, s)**
+    dijkstra(adj, cost, s, t)
+
+    From weighted, directed graph G represented as adjacency matrix `adj`,
+    and (non-negative) edge weights organized similarly in `cost`,
+    return the distance or shortest path from source `s` to terminus `t`.
+    Return -1 if no path found, or any edge weight is negative.
     """
 
-    # for all u∈V:
-    #    dist[u] ← ∞, prev[u] ← nil
-    #   dist[s] ← 0
     V = range(len(adj)) # set of nodes, sequentially numbered
     # Note!!: this is not entirely general - there is no quarantee that
     #   the graph node list is sequentially numbered from 0 to n-1
 
+    # for all u∈V:
+    #   dist[u] ← ∞, prev[u] ← nil
     # dist[v] will be an upper bound on the actual distance from s to v.
     dist = [approxInf for u in V] # initialize dist to completely unknown for all u∈V
     prev = [None for u in V]
-    # visited = [False for u in V]
+    # visited = [False for u in V] # this is represented as dist[u] = infinite
 
     dist[s] = 0 # zero distance to start node
 
@@ -373,9 +390,12 @@ def distance(adj, cost, s, t):
 
 if __name__ == '__main__':
     debug = False
+    readFromStandardInput = True
 
-    #(adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(sample_wdigraph1)
-    (adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(sys.stdin.read())
+    if readFromStandardInput:
+        (adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(sys.stdin.read())
+    else: # expect a named data structure (list) to read from
+        (adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(sample_wdigraph1)
 
     approxInf = math.inf # establish an impossibly far distance, signal upper bound
 
