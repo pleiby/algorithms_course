@@ -365,30 +365,30 @@ Week 4 Paths in Graphs: Fastest Route
 
 - Dijkstra Algorithm Pseudocode
 
-    **Dijkstra(G, S)**
+    **Dijkstra(G, s)**
     for all u∈V:
         dist[u] ← ∞, 
         prev[u] ← nil
-    dist[S] ← 0
+    dist[s] ← 0
     H ← MakeQueue(V ) {dist-values as keys} # this is the Unknown region, H = not(R)
     while H is not empty:
-        u ← ExtractMin(H)
-        # Lemma: When a node u is selected via ExtractMin, dist[u] = d(S,u).
+        u ← ExtractMin(H) # get unknown node with min upper bound dist est
+        # Lemma: When a node u is selected via ExtractMin, dist[u] = d(s,u). (_assuming_ non-neg edge distances)
         for all (u,v)∈ E: # relax _outgoing_ edges from u
-            if dist[v] > dist[u]+w(u,v):
+            if dist[v] > dist[u]+w(u,v): # if new shorter way to v via u
                 dist[v] ← dist[u] + w(u, v)
-                prev[v] ← u
-                ChangePriority(H , v , dist [v])
+                prev[v] ← u # record predecezxor node in path
+                ChangePriority(H, v, dist[v]) # automatic if priority based on dist
 
 #### Dijstra Running Time
 - Total running time:
-    - T (MakeQueue) 
-    - + |V | · T (ExtractMin) 
-    - + |E | · T (ChangePriority)
+    - T(MakeQueue) 
+    - + |V| · T(ExtractMin) 
+    - + |E| · T(ChangePriority)
 - Actual running time will depend on the efficiency of these operations
     - Priority queue implementations:
         - array:
-            - O(|V|+|V|2 +|E|)=O(|V|2)
+            - O(|V|+|V|^2 +|E|) = O(|V|^2)
         - binary heap:
             - O(|V|+|V|log|V|+|E|log|V|) = O((|V|+|E|)log|V|)
     - Conclude DA works in time quadratic in V, or |E| log |V|, depending on implementation
@@ -414,24 +414,30 @@ Week 4 Paths in Graphs: Fastest Route
     - so a key idea in finding distances in graphs with negative weights is to identify negative weight cycles
 
 #### Bellman-Ford Algorithm
-- algorithm for finding shortest path in graphs where some edges have negative weight (and cannot use Dijkstra Alborithm)
+- algorithm for finding shortest path in graphs where some edges have negative weight (and cannot use Dijkstra Algorithm)
 - like Naive Algorithm
     - relax edges where the distance (estimate via upper bound) changes
 - Works with negative weights, but _only_ if there are no negative weight cycles in G
 
-    **Bellman–Ford algorithm** for distances from source S in graph G
-    BellmanFord(G, S)
+    **Bellman–Ford algorithm** for distances from source s in graph G
+    BellmanFord(G, s):
     {no negative weight cycles in G}
     for all u∈V:
         dist[u] ← ∞
         prev[u] ← nil
-    dist[S] ← 0
-    repeat |V|−1 times: # for all u∈V != S
+    dist[s] ← 0
+    repeat |V|−1 times: # for all u∈V != s
         for all (u,v) ∈ E:
-            Relax(u, v )
+            Relax(u, v)
         while 
             at least one dist changes
 
+    **edge relaxation algorithm** 
+    Relax(u, v):
+    if dist[v] > dist[u] + w(u,v): # if new shorter way to v via u
+        dist[v] ← dist[u] + w(u, v)
+        prev[v] ← u # record predecezxor node in path
+    
 - Running time of Bellman-Ford
     - O(|V||E|)
 
@@ -445,12 +451,44 @@ Week 4 Paths in Graphs: Fastest Route
     Run |V| iterations of Bellman–Ford algorithm, 
     save node v relaxed on the last iteration
     v is reachable from a negative cycle
-    Start from x ← v (x = Prev(v)), 
+    Start from x ← v (x = Prev(v)??), 
         follow the link x ← prev[x] for |V| times # will be definitely on the cycle
         Repeat
             Save y ← x
             go x ← prev[x]
              until x = y again
+
+#### Detect Infinite Arbitrage
+
+- Lemma
+    It is possible to get any amount of currency u from currency S
+    if and only if u is reachable from some node w for which dist[w] decreased on iteration V of Bellman-Ford.
+
+    **Detecting Infinite Arbitrage (from Negative Cycle) Algorithm**
+    - Do |V| iterations of Bellman–Ford, save all nodes relaxed on V -th iteration — set A
+    - Put all nodes from A in queue Q # this is the negative cycle
+    - Do breadth-first search with queue Q
+        - and find all nodes reachable from A
+    - All those nodes and only those can have infinite arbitragen (distance driven down indefinitly by cycling through negative cycle and then reaching those nodes)
+
+#### Reconstruct Infinite Arbitrage Path Sequence
+
+- During Breadth-First Search, remember the parent of each visited node
+- Reconstruct the path to u from some node w relaxed on iteration V
+- Go back from w to find negative cycle from which w is reachable
+- Use this negative cycle to achieve infinite arbitrage from S to u
+
+#### Conclusion
+- Can implement best possible exchange rate (or optimal other multiplicative sequence)
+    - as shortest path with log(mults) as edge weights
+- Can determine whether infinite arbitrage is possible
+    - (based on existed of negative cycle and determination of nodes reachable from that cycle)
+- Can implement infinite arbitrage
+    - reconstructing path/sequence of transactions that utilize negative cycle
+- Can find shortest paths in graphs with negative edge weights
+    - Bellman-Ford is less efficient than Dijkstra, but does not require non-negative edge weights
+    - But does require no negative cycles
+
 
 Week 5 Spanning Trees: Efficient Algorithms
 ---------------------------
