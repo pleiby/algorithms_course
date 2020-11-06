@@ -116,19 +116,19 @@ def BellmanFord(G_adj):
     #         at least one dist changes
     
     for i in range(length(V)-1): # repeat |V|−1 times:
+        v_lastrelaxed = 0 # number for last relaxed node, if any
         for u in V: # for all u∈V
             for i in range(len(adj[u])): # for all (u,v) ∈ E: Relax(u,v) # relax all _outgoing_ edges from u
                 # edge relaxation procedure for an edge (u,v) just checks whether
                 #  going from s to v through u improves the current value of dist[v].
                 v = adj[u][i] # v in adj[u]
                 if dist[v] > (dist[u] + cost[u][i]): # + w(u,v):
+                    v_lastrelaxed = v
                     dist[v] = dist[u] + cost[u][i] # update the distance
                     prev[v] = u # update the predecessor node
                     # ChangePriority(H , v , dist[v]) # rather than priority queue, update dist and scan array for min dist
 
-
-    u = 0
-    return(u)
+    return(v_lastrelaxed)
 
 def negative_cycle(adj, cost):
     """ negative_cycle(adj, cost)
@@ -140,8 +140,8 @@ def negative_cycle(adj, cost):
     # **Finding Negative Cycle Algorithm:**
     # Run |V| iterations of Bellman–Ford algorithm, 
     for v in adj:
-        u = BellmanFord(adj) # u is the node relaxed by Bellman-Ford
-    if (u>0): # non-zero node relaxed after last BellmanFord iteration, cycle found by last iteration
+        u_last = BellmanFord(adj) # u is the last node relaxed by Bellman-Ford
+    if (u_last>0): # non-zero node relaxed after last BellmanFord iteration, cycle found by last iteration
         return(1)
     else: # signal no cycle
         return(0)
@@ -156,7 +156,6 @@ def negative_cycle(adj, cost):
     #        Save y ← x
     #        go x ← prev[x]
     #         until x = y again
-    return 0
 
 # Note:
 # if edges are multiplicative weights, for path with maximum product:
@@ -194,8 +193,8 @@ def parse_weighted_digraph_input_to_G(inputtext):
 #  and 0 otherwise.
 
 if __name__ == '__main__':
-    debug = False
-    readFromStandardInput = True
+    debug = True
+    readFromStandardInput = False
 
     if readFromStandardInput:
         (adj, cost) = parse_weighted_digraph_input_to_G(sys.stdin.read())
