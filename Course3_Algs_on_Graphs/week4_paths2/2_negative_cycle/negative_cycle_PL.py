@@ -10,7 +10,7 @@ def BellmanFord_iter(adj, cost, dist, prev):
     #     while 
     #         at least one dist changes
     
-    v_lastrelaxed = -1 # to be positive number for last relaxed node, if any
+    relaxed = False # true if a node relaxed
     V = range(len(adj)) # set of nodes, sequentially numbered
     for u in V: # for all u∈V
         for i in range(len(adj[u])): # for all (u,v) ∈ E: Relax(u,v) # relax all _outgoing_ edges from u
@@ -18,14 +18,14 @@ def BellmanFord_iter(adj, cost, dist, prev):
             #  going from s to v through u improves the current value of dist[v].
             v = adj[u][i] # v in adj[u]
             if dist[v] > (dist[u] + cost[u][i]): # + w(u,v): (found a shorter path to v thru u)
-                v_lastrelaxed = v
+                relaxed = True
                 dist[v] = dist[u] + cost[u][i] # update the distance
                 prev[v] = u # update the predecessor node
                 # ChangePriority(H , v , dist[v]) # rather than priority queue, update dist and scan array for min dist
 
-    return(v_lastrelaxed, dist, prev)
+    return relaxed #, dist, prev)
 
-def BellmanFord(adj, cost, s=0): # default start node
+def BellmanFord(adj, cost, s=0, negcycle_test=False): # default start node
     # **Bellman–Ford algorithm** for distances from source s in graph G
     # BellmanFord(G, s):
     # {no negative weight cycles in G}
@@ -36,7 +36,7 @@ def BellmanFord(adj, cost, s=0): # default start node
 
     V = range(len(adj)) # set of nodes, sequentially numbered
 
-    dist = [approxInf for u in V] # initialize dist to completely unknown for all u∈V
+    dist = [math.inf for u in V] # initialize dist to completely unknown for all u∈V
     prev = [None for u in V]
     # visited = [False for u in V] # this is represented as dist[u] = infinite
 
@@ -48,14 +48,19 @@ def BellmanFord(adj, cost, s=0): # default start node
     #     while 
     #         at least one dist changes
     
-    for x in range(len(V)-1): # repeat |V|−1 times: (can stop early if no relaxations)
+    if negcycle_test:
+        iters = len(V)
+    else:
+        iters = len(V)-1
+    
+    for x in range(iters): # repeat |V|−1 times: (can stop early if no relaxations)
         # do one iteration of BellmanFord
-        v_lastrelaxed, dist, prev = BellmanFord_iter(adj, cost, dist, prev)
+        relaxed = BellmanFord_iter(adj, cost, dist, prev)
         if debug:
-            print("Iter :", x, v_lastrelaxed, dist, "\n")
-        if (v_lastrelaxed < 0): # no node relaxed this iteration
+            print("BF Iter :", x, relaxed, dist, "\n")
+        if (not relaxed): # no node relaxed this iteration
             break
-    return(v_lastrelaxed, dist) # return number of last relaxed node (-1 if none), and distances
+    return(relaxed, dist) # return number of last relaxed node (-1 if none), and distances
 
 
 def negative_cycle(adj, cost):
@@ -69,16 +74,11 @@ def negative_cycle(adj, cost):
     # Run |V| iterations of Bellman–Ford algorithm, 
     # First call `BellmanFord()``, which is |V|-1 BellmanFord iterations,
     #  gets distances providing no negative cycles
-    u_last, d = BellmanFord(adj, cost) # u is the last node relaxed by Bellman-Ford
-    prev = [None for u in range(len(adj))] # need this for one last iteratinon
-
-    # now do one extra iteration and see if any node is "relaxed" 
-    u_last, d, prev = BellmanFord_iter(adj, cost, d, prev)
-    if debug:
-            print("Iter :", len(adj), u_last, d, "\n")
-    
-    if (u_last >= 0): # non-negative node relaxed after last BellmanFord iteration, cycle found by last iteration
-        return(1)
+    # negcycle_test=True does one extra iteration and see if any node is "relaxed" 
+    did_a_relaxation, d = BellmanFord(adj, cost, negcycle_test=True) # u is the last node relaxed by Bellman-Ford
+   
+    if (did_a_relaxation): # non-negative node relaxed after last BellmanFord iteration, cycle found by last iteration
+        return(1) # required return by the problem set
     else: # signal no cycle
         return(0)
     
@@ -151,6 +151,14 @@ sample_wdigraph2 = """
 1 5
 """
 
+sample_wdigraph3 = """
+4 4
+1 2 -1
+4 1 2
+2 3 2
+3 1 1
+"""
+
 # Task. Given an directed graph with possibly negative edge weights
 #  and with 𝑛 vertices and 𝑚 edges, check whether it contains a cycle
 #  of negative weight.
@@ -162,12 +170,13 @@ sample_wdigraph2 = """
 
 if __name__ == '__main__':
     debug = False
-    readFromStandardInput = True
+    readFromStandardInput = False
 
     if readFromStandardInput:
         (adj, cost) = parse_weighted_digraph_input_to_G(sys.stdin.read())
     else: # expect a named data structure (list) to read from
-        (adj, cost) = parse_weighted_digraph_input_to_G(sample_wdigraph0)
+        (adj, cost) = parse_weighted_digraph_input_to_G(sample_wdigraph3)
 
-    approxInf = math.inf # establish an impossibly far distance, signal upper bound
     print(negative_cycle(adj, cost))
+
+
