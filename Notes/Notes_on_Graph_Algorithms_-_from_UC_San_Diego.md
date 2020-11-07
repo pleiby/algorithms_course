@@ -408,7 +408,8 @@ Week 4 Paths in Graphs: Fastest Route
     - again we have the issue of negative weights
 - Dijsktra algorithm does not work with negative weights, 
     - in part because edge relaxation does not work, i.e. cannot be certain that paths made shorter by relaxation necessarily dominate partial paths that are longer.
-    - Dijkstra algorithm relies on fact that shortest path from s to t goes only through vertices that are closer to s than t.
+    - Key: Dijkstra algorithm relies on fact that shortest path from s to t goes only through vertices that are closer to s than t.
+        - this provides a sequence for the search of shortest path, and allows us to set (lower) bounds on its length
 - Assertion: "All the problems in graphs with negative weights come from negative weight cycles"
     - in which case distances along the path in negative weight cycles all got to negative infinity
     - so a key idea in finding distances in graphs with negative weights is to identify negative weight cycles
@@ -416,7 +417,8 @@ Week 4 Paths in Graphs: Fastest Route
 #### Bellman-Ford Algorithm
 - algorithm for finding shortest path in graphs where some edges have negative weight (and cannot use Dijkstra Algorithm)
 - like Naive Algorithm
-    - relax edges where the distance (estimate via upper bound) changes
+    - "relax edges where the distance estimate (via upper bound) changes"
+    - but number of iterations specified/bounded by |V|-1
 - Works with negative weights, but _only_ if there are no negative weight cycles in G
 
     **Bellman–Ford algorithm** for distances from source s in graph G
@@ -436,7 +438,7 @@ Week 4 Paths in Graphs: Fastest Route
     Relax(u, v):
     if dist[v] > dist[u] + w(u,v): # if new shorter way to v via u
         dist[v] ← dist[u] + w(u, v)
-        prev[v] ← u # record predecezxor node in path
+        prev[v] ← u # record predecessor node in path
     
 - Running time of Bellman-Ford
     - O(|V||E|)
