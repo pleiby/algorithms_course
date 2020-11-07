@@ -56,8 +56,9 @@ def BellmanFord(adj, cost, s=0, negcycle_test=False): # default start node
     for x in range(iters): # repeat |V|−1 times: (can stop early if no relaxations)
         # do one iteration of BellmanFord
         relaxed = BellmanFord_iter(adj, cost, dist, prev)
-        if debug:
-            print("BF Iter :", x, relaxed, dist, "\n")
+        logging.info("BF Iter :", x, relaxed, dist)
+        # if debug:
+        #     print("BF Iter :", x, relaxed, dist, "\n")
         if (not relaxed): # no node relaxed this iteration
             break
     return(relaxed, dist) # return number of last relaxed node (-1 if none), and distances
