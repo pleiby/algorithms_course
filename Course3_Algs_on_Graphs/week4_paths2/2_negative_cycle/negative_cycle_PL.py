@@ -24,18 +24,22 @@ def BellmanFord_iter(adj, cost, dist, prev):
                 prev[v] = u # update the predecessor node
                 # ChangePriority(H , v , dist[v]) # rather than priority queue, update dist and scan array for min dist
 
-    return relaxed #, dist, prev)
+    return relaxed
 
 def BellmanFord(adj, cost, s=0, negcycle_test=False): # default start node
-    """ BellmanFord(adj, cost, s=0, negcycle_test=False)
-    adj is node adjacency matrix
-    cost is edge weights organized like adj
-    s is source node number for distance calc
-    negcycle_test is bool indicated if extra BF iter wanted to test for neg cycles
+    """
+    determine distances from source node using BellmanFord, which allows negative edge weights.
 
-    Return 
-    number of last relaxed node (-1 if none), and
-    distances from s
+    Args:
+        adj (list): node adjacency matrix.
+        cost (list): edge weights organized like adj
+        s (ind): number of source node for distance calc
+        negcycle_test (bool): Truen if extra BF iter wanted to test for neg cycles
+
+
+    Returns:
+        (bool): True if some node was relaxed in last iteration
+        (list): updated distances from source node
     """
     # **Bellman–Ford algorithm** for distances from source s in graph G
     # BellmanFord(G, s):
@@ -116,11 +120,12 @@ def negative_cycle(adj, cost):
 
 def parse_weighted_digraph_input_to_G(inputtext):
     """
-    Expect text file/string describing graph consistent with
-    Graph Algorithms course standard, for digraph with weights
+    parse text file/string describing weighted digraph consistent with
+    Graph Algorithms course standard
+
     Returns:
-        adj - adjacency matrix
-        cost - edge costs organized in same way as adjacency matrix
+        adj (list): adjacency matrix
+        cost (list): edge costs organized same as adjacency matrix
     """
     data = list(map(int, inputtext.split()))
     n, m = data[0:2] # count of verts and edges
