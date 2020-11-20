@@ -1,6 +1,7 @@
 #Uses python3
 
 import sys, math
+import logging
 
 
 def BellmanFord_iter(adj, cost, dist, prev):
@@ -26,6 +27,16 @@ def BellmanFord_iter(adj, cost, dist, prev):
     return relaxed #, dist, prev)
 
 def BellmanFord(adj, cost, s=0, negcycle_test=False): # default start node
+    """ BellmanFord(adj, cost, s=0, negcycle_test=False)
+    adj is node adjacency matrix
+    cost is edge weights organized like adj
+    s is source node number for distance calc
+    negcycle_test is bool indicated if extra BF iter wanted to test for neg cycles
+
+    Return 
+    number of last relaxed node (-1 if none), and
+    distances from s
+    """
     # **Bellman–Ford algorithm** for distances from source s in graph G
     # BellmanFord(G, s):
     # {no negative weight cycles in G}
@@ -53,22 +64,27 @@ def BellmanFord(adj, cost, s=0, negcycle_test=False): # default start node
     else:
         iters = len(V)-1
     
-    for x in range(iters): # repeat |V|−1 times: (can stop early if no relaxations)
+    for x in range(iters): # repeat |V|−1 times, |V| if neg-cycle check: (can stop early if no relaxations)
         # do one iteration of BellmanFord
         relaxed = BellmanFord_iter(adj, cost, dist, prev)
-        logging.info("BF Iter :", x, relaxed, dist)
-        # if debug:
-        #     print("BF Iter :", x, relaxed, dist, "\n")
+        # logging.info("BF Iter :", x, relaxed, dist) # not clear that logging can display non-string objects
+        if debug:
+            print("BF Iter :", x, relaxed, dist, "\n")
         if (not relaxed): # no node relaxed this iteration
             break
     return(relaxed, dist) # return number of last relaxed node (-1 if none), and distances
 
 
 def negative_cycle(adj, cost):
-    """ negative_cycle(adj, cost)
+    """
+    bool function testing for negative weight cycle in graph
 
-    Return 1 if the graph contains a cycle of negative weight
-    and 0 otherwise.
+    Args:
+        adj (list): node adjacency matrix.
+        cost (list): edge weights organized like adj.
+
+    Returns:
+        int: 1 if graph contains cycle of negative weight; 0 otherwise.
     """
 
     # **Finding Negative Cycle Algorithm:**
@@ -160,6 +176,35 @@ sample_wdigraph3 = """
 3 1 1
 """
 
+
+sample_wdigraph4 = """
+5 9
+1 2 4
+1 3 2
+2 3 2
+3 2 1
+2 4 2
+3 5 -5
+5 4 1
+2 5 3
+4 1 1
+1 5
+""" # has neg cycle
+
+sample_wdigraph4a = """
+5 9
+1 2 4
+1 3 2
+2 3 2
+3 2 1
+2 4 2
+3 5 -4
+5 4 1
+2 5 3
+4 1 1
+1 5
+""" # zero distance but not neg cycle
+
 # Task. Given an directed graph with possibly negative edge weights
 #  and with 𝑛 vertices and 𝑚 edges, check whether it contains a cycle
 #  of negative weight.
@@ -169,15 +214,22 @@ sample_wdigraph3 = """
 # Output Format: Output 1 if the graph contains a cycle of negative weight
 #  and 0 otherwise.
 
-if __name__ == '__main__':
-    debug = False
+def main():
+    # logging.basicConfig(filename='myapp.log', level=logging.INFO) # an alternative to debug print statements
+    # logging.info('Started')
+
+    debug = True
     readFromStandardInput = False
 
     if readFromStandardInput:
         (adj, cost) = parse_weighted_digraph_input_to_G(sys.stdin.read())
     else: # expect a named data structure (list) to read from
-        (adj, cost) = parse_weighted_digraph_input_to_G(sample_wdigraph3)
+        (adj, cost) = parse_weighted_digraph_input_to_G(sample_wdigraph4a)
 
     print(negative_cycle(adj, cost))
+    # logging.info('Finished')
 
+
+if __name__ == '__main__':
+    main()
 
