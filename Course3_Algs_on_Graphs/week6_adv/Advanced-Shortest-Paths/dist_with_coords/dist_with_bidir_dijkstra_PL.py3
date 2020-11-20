@@ -3,6 +3,7 @@
 import sys
 import queue
 import math
+import copy
 
 #=============================================
 
@@ -13,7 +14,7 @@ sample_wdigraph1 = """
 2 3 2
 1 3 5
 1 3
-"""
+""" # distance 3
 
 sample_wdigraph2 = """
 5 9
@@ -27,7 +28,7 @@ sample_wdigraph2 = """
 2 5 3
 3 4 4
 1 5
-"""
+""" # distance 6
 
 sample_wdigraph3 = """
 3 3
@@ -35,7 +36,7 @@ sample_wdigraph3 = """
 1 3 5
 2 3 2
 3 2
-"""
+""" # distance -1 (no path)
 
 #=============================================
 
@@ -43,22 +44,26 @@ def make_queue(V):
     """
     Create a queue of paired vertices as a simple list
     """
-    H = []
+    H = [] # this is the simplest queue: and ordered array
     for i in V:
-        H.append(i)
+        H.append(i) # here we could use alternative node numbering than sequential
     return(H)
 
 def extract_min(H, ds):
     """
-    extract_min(H, ds)
-
     extract the node from queue `H` with the minimal upper-bound estimate of distance to source s.
-    `ds` distance array is also passed, absent a priority queue implementation.
-    For this node v, the bound distance ds(v) will be the actual distance d(s,v).
-    Return the min dist node, its distance
-    (but not the reduced set H).
+
+    Args:
+        H (list): node adjacency matrix.
+        ds (list): distance array, absent a priority queue implementation.cost
+    
+    Returns:
+        int: number of node with minimum distance upperbound (but not the reduced set H).
+        side effect: also reduces size of passed H, removing minimal node
     """
-    minDist = approxInf
+    # TODO: consider priority queue approach. 
+    # Following just scans entire list of incompletely processed nodes
+    minDist = math.inf
     u = None # min vertex unknown
     i = 0
     for v in H:
@@ -67,6 +72,7 @@ def extract_min(H, ds):
             u = v # note that u is unused (instead returned by pop)
             imin = i
         i += 1
+    # Note side effect: following also reduces size of passed H
     return(H.pop(imin)) # return [u, d]
 
 # In Dijkstra: we generate an SPT (shortest path tree) for a given source `S` as root.
@@ -78,12 +84,17 @@ def extract_min(H, ds):
 
 def dijkstra(adj, cost, s, t):
     """
-    dijkstra(adj, cost, s, t)
+    dijkstra(adj, w, s, t)
+    return distance or shortest path from source `s` to terminus `t` for weighted, digraph with adjacency list `adj` and edge weights `cost`.
 
-    From weighted, directed graph G represented as adjacency matrix `adj`,
-    and (non-negative) edge weights organized similarly in `cost`,
-    return the distance or shortest path from source `s` to terminus `t`.
-    Return -1 if no path found, or any edge weight is negative.
+    Args:
+        adj (list): node adjacency list, for weighted, directed graph G 
+        cost (list): (non-negative) edge weights organized like adj
+        s (int): source node number (origin)
+        t (int): terminal node (destination)
+
+    Returns:
+        (int): distance from source s to terminal node t, -1 if no path found, or any edge weight is negative.
     """
 
     V = range(len(adj)) # set of nodes, sequentially numbered
@@ -93,7 +104,7 @@ def dijkstra(adj, cost, s, t):
     # for all u∈V:
     #   dist[u] ← ∞, prev[u] ← nil
     # dist[v] will be an upper bound on the actual distance from s to v.
-    dist = [approxInf for u in V] # initialize dist to completely unknown for all u∈V
+    dist = [math.inf for u in V] # initialize dist to completely unknown for all u∈V
     prev = [None for u in V]
     # visited = [False for u in V] # this is represented as dist[u] = infinite
 
@@ -124,10 +135,15 @@ def dijkstra(adj, cost, s, t):
 
 def reverse_graphs(adj, cost):
     """
-    reverse_graphs(adj, cost)
+    reverse a graph, given its adjacency and edge cost lists
 
-    reverse a graph, given its adjacency and cost matrix
-    Returns reversed adj and costs
+    Args:
+        adj (list): node adjacency list, for weighted, directed graph G 
+        cost (list): (non-negative) edge weights organized like adj
+
+    Returns:
+        (list) reversed adj list
+        (list): costs for reversed graph
     """
     # see https://stackoverflow.com/questions/16158926/how-to-reverse-a-graph-in-linear-time
 
@@ -139,17 +155,48 @@ def reverse_graphs(adj, cost):
         for i in range(len(adj[u])): # for all (u,v) ∈ E: Relax(u,v) # relax all _outgoing_ edges from u
             v = adj[u][i] # node in ith position of adjacencies to u
             radj[v].append(u) # v in adj[u]
-            rcost[v].append(cost[u][i])
+            rcost[v].append(cost[u][i]) # rw(v, u) <- w(u, v)
 
     return(radj, rcost)
 
-def Relax(adj, w, dist, u, v):
-    # **edge relaxation algorithm** 
-    # Relax(u, v):
-    if dist[v] > (dist[u] + cost[u][i]): # + w(u,v): # if new shorter way to v via u
-        dist[v] = dist[u] + cost[u][i] # update the distance
+def relax(u, v, w, dist, prev):
+    """
+    **edge relaxation algorithm**
+
+    Args:
+        u (int) origin node
+        v (int) node directly connected to u, being relaxed
+        w (list): (non-negative) edge weights organized like adj
+        dist (list): current distance estimates for each node
+        prev (list): for each node, immediately previous node along shortest path known
+
+    Returns:
+        (list): updated distance estimates for each node (if relaxation of dist to node v through u)
+    """
+    # Relax(u, v, dist, prev)
+    # if dist[v] > dist[u] + w(u,v): 
+    #     dist[v] = dist[u] + w(u,v)
+    #     prev[v] = u
+
+    # edge relaxation procedure for an edge (u,v) just checks whether
+    #  going from s to v through u improves the current value of dist[v].
+    #  If so, update distance and previous node list
+    if dist[v] > (dist[u] + w[u][i]): # + w(u,v): # if new shorter way to v via u
+        dist[v] = dist[u] + w[u][i] # update the distance
         prev[v] = u # record/update the predecessor node in path
-    return(dist)
+        # ChangePriority(H , v , dist[v]) # rather than priority queue, update dist and scan array for min dist
+    return
+
+
+def process_node(u, adj, dist, cost, prev): #, proc) (note: could pass adj[u])
+    # for (u,v)∈ E(G):
+    #     Relax(u, v, w, dist, prev)
+    # proc.Append(u) # equivalently, can delete u from "Unprocessed" H in extractMin
+    for i in range(len(adj[u])): # for all (u,v) ∈ E: Relax(u,v) # relax all _outgoing_ edges from u
+        v = adj[u][i] # v in adj[u]
+        relax(u, v, cost, dist, prev)
+        # proc.Append(u) # equivalently, can delete u from "Unprocessed" H in extractMin
+    return
 
 # ShortestPath(s, dist, prev, proc, t, distR , prevR , procR )
 # distance ← +∞, ubest ← None
@@ -169,21 +216,26 @@ def Relax(adj, w, dist, u, v):
 #     path.Append(last)
 # return(distance,path)
 
-def bidir_dijsktra(adj, cost, s, t):
+def bidir_dijsktra(adj, w, s, t):
     """
-    bidir_dijkstra(adj, cost, s, t)
+    bidir_dijkstra(adj, w, s, t)
 
-    From weighted, directed graph G represented as adjacency matrix `adj`,
+    From weighted, directed graph G represented as adjacency list `adj`,
     and (non-negative) edge weights organized similarly in `cost`,
-    return the distance or shortest path from source `s` to terminus `t`.
-    Return -1 if no path found, or any edge weight is negative.
+    return the distance or shortest path
+
+    Args:
+        adj (list): adjacency list of lists of edges for each node
+        cost (list): edge costs organized same way as adjacency list
+        s (int): source node (origin)
+        t (int): terminal node (destination)
+    
+    Returns:
+        dist from s to t; -1 if no path found, or any edge weight is negative.
     """
 
-    Relax(u, v , dist, prev)
-    if dist[v]>dist[u]+w(u,v): dist[v] ← dist[u] + w(u, v) prev[v] ← u
-
-    # Process(u, G , dist, prev, proc)
-    # for (u,v)∈E(G):
+    # process_node(u, G , dist, prev, proc)
+    # for (u,v)∈ E(G):
     #     Relax(u, v , dist, prev)
     # proc.Append(u)
 
@@ -193,46 +245,105 @@ def bidir_dijsktra(adj, cost, s, t):
     # dist[s] ← 0, distR [t] ← 0
     # Fill prev,prevR with None for each node
     # proc ← empty, procR ← empty
-    # do:
-    #     v ← ExtractMin(dist)
-    #     Process(v, G, dist, prev, proc)
-    #     if v in procR:
-    #         return ShortestPath(s, dist, prev, proc, t, ... )
-    #     vR ← ExtractMin(distR)
-    #     repeat symmetrically for vR as for v
-    # while True
 
     # first construct the reverse graph G^R
-    radj, rcost = reverse_graphs(adj, cost)
+    adjR, costR = reverse_graphs(adj, cost)
     if debug:
         print(adj, cost, s, t)
-        print(radj, rcost, s, t)
+        print(adjR, costR, s, t)
+
+    V = range(len(adj)) # set of nodes, sequentially numbered
+    VR = range(len(adjR)-1, -1, -1) # ugly way to create backward range for sequentially numbered nodes
+    # Note!!: this is not entirely general - there is no quarantee that
+    #   the graph node list is sequentially numbered from 0 to n-1
+
+    # for all u∈V:
+    #   dist[u] ← ∞, prev[u] ← nil
+    # dist[v] will be an upper bound on the actual distance from s to v.
+    dist = [math.inf for u in V] # initialize dist to completely unknown for all u∈V
+    distR = copy.deepcopy(dist)
+    prev = [None for u in V]
+    prevR = copy.deepcopy(prev)
+
+    # visited = [False for u in V] # this is represented as dist[u] = infinite
+
+    dist[s] = 0 # zero distance to start node
+    distR[t] = 0 # zero reverse distance to terminal node
+    
+
+    # do:
+    #     u ← ExtractMin(dist)
+    #     process_node(u, G, dist, prev, proc)
+    #     if u in procR:
+    #         return ShortestPath(s, dist, prev, proc, t, ... )
+    #     uR ← ExtractMin(distR)
+    #     repeat symmetrically for uR as for v
+    # while True
+
+    # H ← MakeQueue(V ) {dist-values as keys} # this is the Unknown region, not(R)
+    # the set of unknown (unvisited, or not fully visited) vertices
+    H = make_queue(V) #, dist)
+    HR = make_queue(VR) # ***unused*** don't need to use VR, since will start with extracting t for GR = adjR
+
+    while len(H) > 0: # H, set of unknown vertices is not empty:
+        # On each iteration we take a vertex outside of R (in H) with the minimal dist-value,
+        #  add it to R, and relax all its outgoing edges.
+        u = extract_min(H, dist) # [u, d] = extract_min(H)
+        # Lemma: When a node u is selected via ExtractMin, dist[u] = d(S,u), actual minimum distance.
+        # First node to be extracted will be the source s (since dist[s]==0)
+        # Should we stop early if min node u == t (t is moved to known set R before unknown H is exhausted)?
+        process_node(u, adj, dist, cost, prev)
+
+        if not (u in HR): # if u in procR
+            return(shortest_path())
+        uR = extract_min(HR, distR)
+        if not (uR in H): # if uR in proc
+            return(shortest_path())
+        
+        if u == t: 
+            break # continue untill have processed terminal/target node `t`
+    return dist[t] 
+
+
 
     return(dist)
 
-def distance(adj, cost, s, t):
+def distance(adj, cost, s, t, bidir = False):
     """
-    distance(adj, cost, s, t)
+    given adjacency list `adj` and similarly organized weights `cost` return distance from s to t
 
-    given adjacency list `adj` and similarly organized costs list `cost`
-    return distance from s to t
+    Args:
+        adj (list): adjacency list of lists of edges for each node
+        cost (list): edge costs organized same way as adjacency list
+        s (int): source node (origin)
+        t (int): terminal node (destination)
+        bidir (bool): T if bidirectional Dijkstra, else normal Dijkstra
+
+    Returns:
+        int distance or -1 if not connected
     """
-    dist_to_t = dijkstra(adj, cost, s, t)
-    if dist_to_t < approxInf:
+    if bidir:
+        dist_to_t = bidir_dijsktra(adj, cost, s, t)
+    else:
+        dist_to_t = dijkstra(adj, cost, s, t)
+    if dist_to_t < math.inf:
         return dist_to_t
     else:
         return -1
 
 def parse_weighted_digraph_input_to_G_s_and_t(inputtext):
     """
-    Expect text file/string describing graph consistent with
-    Graph Algorithms course standard,
+    parse text file/string describing weighted digraph into adjacency and weight list
+    
+    Args:
+        inputtest (string) digraph consistent with Graph Algorithms course standard
     followed by a line with start and target node numbers.
+
     Returns:
-        adj - adjacency matrix
-        cost - edge costs organized in same way as adjacency matrix
-        s - source node (origin)
-        t - terminal node (destination)
+        adj (list): adjacency list of lists of edges for each node
+        cost (list): edge costs organized same way as adjacency list
+        s (int): source node (origin)
+        t (int): terminal node (destination)
     """
     data = list(map(int, inputtext.split()))
     n, m = data[0:2] # count of verts and edges
@@ -249,7 +360,7 @@ def parse_weighted_digraph_input_to_G_s_and_t(inputtext):
     s, t = data[0] - 1, data[1] - 1
     return (adj, cost, s, t)
 
-if __name__ == '__main__':
+def main():
     debug = True
     readFromStandardInput = False
 
@@ -258,6 +369,10 @@ if __name__ == '__main__':
     else: # expect a named data structure (list) to read from
         (adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(sample_wdigraph1)
 
-    approxInf = math.inf # establish an impossibly far distance, signal upper bound
+    # approxInf = math.inf # establish an impossibly far distance, signal upper bound
 
     print(distance(adj, cost, s, t))
+
+if __name__ == '__main__':
+    main()
+
