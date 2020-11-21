@@ -384,21 +384,37 @@ def parse_weighted_digraph_input_to_G_s_and_t(inputtext):
     s, t = data[0] - 1, data[1] - 1
     return (adj, cost, s, t)
 
+def runcase(graphstring, expected=None):
+
+    (adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(graphstring)
+
+    # approxInf = math.inf # establish an impossibly far distance, signal upper bound
+
+    D_rslt = distance(adj, cost, s, t)
+    BD_rslt = distance(adj, cost, s, t, bidir=True)
+    D_rslt = -1
+
+    if debug:
+        print("Dijkstra: ", D_rslt)
+        print("bidir-Dijkstra: ", BD_rslt)
+
+    assert(D_rslt == BD_rslt), "D and BD Did not match"
+    if expected:
+        assert(D_rslt == expected)
+    return
+
 def main():
     readFromStandardInput = False
 
     if readFromStandardInput: # expect weighted digraph followed by s and t
-        (adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(sys.stdin.read())
+        runcase(sys.stdin.read())
     else: # expect a named data structure (list) to read from
-        (adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(sample_wdigraph1)
+        runcase(sample_wdigraph1, expected = 3)
+        runcase(sample_wdigraph2, expected = 6)
+        runcase(sample_wdigraph3, expected = -1)
 
-    # approxInf = math.inf # establish an impossibly far distance, signal upper bound
 
-    print("Dijkstra: ", distance(adj, cost, s, t))
-    print("bidir-Dijkstra: ", distance(adj, cost, s, t, bidir=True))
-    return
-
-debug = True
+debug = False
 
 if __name__ == '__main__':
     main()
