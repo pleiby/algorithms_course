@@ -75,6 +75,53 @@ def extract_min(H, ds):
     # Note side effect: following also reduces size of passed H
     return(H.pop(imin)) # return [u, d]
 
+
+def relax(u, v, w, dist, prev):
+    """
+    **edge relaxation algorithm**
+
+    Args:
+        u (int) origin node
+        v (int) node directly connected to u, being relaxed
+        w (int): (non-negative) edge weight w(u,v)
+        dist (list): current distance estimates for each node
+        prev (list): for each node, immediately previous node along shortest path known
+
+    Returns:
+        (list): updated distance estimates for each node (if relaxation of dist to node v through u)
+    """
+    # Relax(u, v, dist, prev)
+    # if dist[v] > dist[u] + w(u,v): 
+    #     dist[v] = dist[u] + w(u,v)
+    #     prev[v] = u
+
+    if debug:
+        print("  relax(", u, v, ")")
+    # edge relaxation procedure for an edge (u,v) just checks whether
+    #  going from s to v through u improves the current value of dist[v].
+    #  If so, update distance and previous node list
+    if dist[v] > (dist[u] + w): # + w(u,v): # if new shorter way to v via u
+        dist[v] = dist[u] + w # update the distance
+        prev[v] = u # record/update the predecessor node in path
+        # ChangePriority(H , v , dist[v]) # rather than priority queue, update dist and scan array for min dist
+    return
+
+
+def process_node(u, adj, dist, cost, prev): #, proc) (note: could pass adj[u])
+    # for (u,v)∈ E(G):
+    #     Relax(u, v, w, dist, prev)
+    # proc.Append(u) # equivalently, can delete u from "Unprocessed" H in extractMin
+    if debug:
+        print("process_node", u, "start, input dists: ", dist)
+    for i in range(len(adj[u])): # for all (u,v) ∈ E: Relax(u,v) # relax all _outgoing_ edges from u
+        v = adj[u][i] # v in adj[u]
+        relax(u, v, cost[u][i], dist, prev)
+        # proc.Append(u) # equivalently, can delete u from "Unprocessed" H in extractMin
+    if debug:
+        print("process_node", u, "done, output dists: ", dist)
+    return
+
+
 # In Dijkstra: we generate an SPT (shortest path tree) for a given source `S` as root.
 # The algorithm maintains two sets:
 #  The set H of "unknown" vertices includes vertices that that have not been fully evalated,
@@ -121,14 +168,16 @@ def dijkstra(adj, cost, s, t):
         # Lemma: When a node u is selected via ExtractMin, dist[u] = d(S,u), actual minimum distance.
         # First node to be extracted will be the source s (since dist[s]==0)
         # Should we stop early if min node u == t (t is moved to known set R before unknown H is exhausted)?
-        for i in range(len(adj[u])): # for all (u,v) ∈ E: Relax(u,v) # relax all _outgoing_ edges from u
-            # edge relaxation procedure for an edge (u,v) just checks whether
-            #  going from s to v through u improves the current value of dist[v].
-            v = adj[u][i] # v in adj[u]
-            if dist[v] > (dist[u] + cost[u][i]): # + w(u,v):
-                dist[v] = dist[u] + cost[u][i] # update the distance
-                prev[v] = u # update the predecessor node
-                # ChangePriority(H , v , dist[v]) # rather than priority queue, update dist and scan array for min dist
+        process_node(u, adj, dist, cost, prev) #, proc) (note: could pass adj[u])
+        # Equivalently, inline:
+        # for i in range(len(adj[u])): # for all (u,v) ∈ E: Relax(u,v) # relax all _outgoing_ edges from u
+        #     # edge relaxation procedure for an edge (u,v) just checks whether
+        #     #  going from s to v through u improves the current value of dist[v].
+        #     v = adj[u][i] # v in adj[u]
+        #     if dist[v] > (dist[u] + cost[u][i]): # + w(u,v):
+        #         dist[v] = dist[u] + cost[u][i] # update the distance
+        #         prev[v] = u # update the predecessor node
+        #         # ChangePriority(H , v , dist[v]) # rather than priority queue, update dist and scan array for min dist
         if u == t: 
             break # continue untill have processed terminal/target node `t`
     return dist[t] 
@@ -159,57 +208,14 @@ def reverse_graphs(adj, cost):
 
     return(radj, rcost)
 
-def relax(u, v, w, dist, prev):
-    """
-    **edge relaxation algorithm**
-
-    Args:
-        u (int) origin node
-        v (int) node directly connected to u, being relaxed
-        w (list): (non-negative) edge weights organized like adj
-        dist (list): current distance estimates for each node
-        prev (list): for each node, immediately previous node along shortest path known
-
-    Returns:
-        (list): updated distance estimates for each node (if relaxation of dist to node v through u)
-    """
-    # Relax(u, v, dist, prev)
-    # if dist[v] > dist[u] + w(u,v): 
-    #     dist[v] = dist[u] + w(u,v)
-    #     prev[v] = u
-
-    if debug:
-        print("  relax(", u, v, ")")
-    # edge relaxation procedure for an edge (u,v) just checks whether
-    #  going from s to v through u improves the current value of dist[v].
-    #  If so, update distance and previous node list
-    if dist[v] > (dist[u] + w[u][i]): # + w(u,v): # if new shorter way to v via u
-        dist[v] = dist[u] + w[u][i] # update the distance
-        prev[v] = u # record/update the predecessor node in path
-        # ChangePriority(H , v , dist[v]) # rather than priority queue, update dist and scan array for min dist
-    return
-
-
-def process_node(u, adj, dist, cost, prev): #, proc) (note: could pass adj[u])
-    # for (u,v)∈ E(G):
-    #     Relax(u, v, w, dist, prev)
-    # proc.Append(u) # equivalently, can delete u from "Unprocessed" H in extractMin
-    if debug:
-        print("process_node(", u)
-    for i in range(len(adj[u])): # for all (u,v) ∈ E: Relax(u,v) # relax all _outgoing_ edges from u
-        v = adj[u][i] # v in adj[u]
-        relax(u, v, cost, dist, prev)
-        # proc.Append(u) # equivalently, can delete u from "Unprocessed" H in extractMin
-    return
-
 
 def shortest_path(s, dist, proc, prev, t, distR, prevR, procR):
     distance = math.inf
-    ubest = None
+    # ubest = None
     proc_union = proc | procR # union operator, also proc.union(procR). (not H) union (not HR)
     for u in proc_union:
         if dist[u] + distR[u] < distance:
-            ubest = u
+            # ubest = u
             distance = dist[u] + distR[u]
     return distance
 
@@ -232,9 +238,9 @@ def shortest_path(s, dist, proc, prev, t, distR, prevR, procR):
 #     path.Append(last)
 # return(distance,path)
 
-def bidir_dijsktra(adj, w, s, t):
+def bidir_dijsktra(adj, cost, s, t):
     """
-    bidir_dijkstra(adj, w, s, t)
+    bidir_dijkstra(adj, cost, s, t)
 
     From weighted, directed graph G represented as adjacency list `adj`,
     and (non-negative) edge weights organized similarly in `cost`,
@@ -265,11 +271,10 @@ def bidir_dijsktra(adj, w, s, t):
     # first construct the reverse graph G^R
     adjR, costR = reverse_graphs(adj, cost)
     if debug:
-        print(adj, cost, s, t)
-        print(adjR, costR, s, t)
+        print("adj and cost: ", adj, cost, s, t)
+        print("adjR and costR: ", adjR, costR, s, t)
 
     V = range(len(adj)) # set of nodes, sequentially numbered
-    VR = range(len(adjR)-1, -1, -1) # ugly way to create backward range for sequentially numbered nodes
     # Note!!: this is not entirely general - there is no quarantee that
     #   the graph node list is sequentially numbered from 0 to n-1
 
@@ -299,7 +304,7 @@ def bidir_dijsktra(adj, w, s, t):
     # H ← MakeQueue(V ) {dist-values as keys} # this is the Unknown region, not(R)
     # the set of unknown (unvisited, or not fully visited) vertices
     H = make_queue(V) #, dist)
-    HR = make_queue(VR) # ***unused*** don't need to use VR, since will start with extracting t for GR = adjR
+    HR = make_queue(V) # ***unused*** don't need to use VR, since will start with extracting t for GR = adjR
     proc = set()
     procR = set()
 
@@ -391,6 +396,7 @@ def main():
 
     print("Dijkstra: ", distance(adj, cost, s, t))
     print("bidir-Dijkstra: ", distance(adj, cost, s, t, bidir=True))
+    return
 
 debug = True
 
