@@ -178,6 +178,8 @@ def relax(u, v, w, dist, prev):
     #     dist[v] = dist[u] + w(u,v)
     #     prev[v] = u
 
+    if debug:
+        print("  relax(", u, v, ")")
     # edge relaxation procedure for an edge (u,v) just checks whether
     #  going from s to v through u improves the current value of dist[v].
     #  If so, update distance and previous node list
@@ -192,11 +194,25 @@ def process_node(u, adj, dist, cost, prev): #, proc) (note: could pass adj[u])
     # for (u,v)∈ E(G):
     #     Relax(u, v, w, dist, prev)
     # proc.Append(u) # equivalently, can delete u from "Unprocessed" H in extractMin
+    if debug:
+        print("process_node(", u)
     for i in range(len(adj[u])): # for all (u,v) ∈ E: Relax(u,v) # relax all _outgoing_ edges from u
         v = adj[u][i] # v in adj[u]
         relax(u, v, cost, dist, prev)
         # proc.Append(u) # equivalently, can delete u from "Unprocessed" H in extractMin
     return
+
+
+def shortest_path(s, dist, proc, prev, t, distR, prevR, procR):
+    distance = math.inf
+    ubest = None
+    proc_union = proc | procR # union operator, also proc.union(procR). (not H) union (not HR)
+    for u in proc_union:
+        if dist[u] + distR[u] < distance:
+            ubest = u
+            distance = dist[u] + distR[u]
+    return distance
+
 
 # ShortestPath(s, dist, prev, proc, t, distR , prevR , procR )
 # distance ← +∞, ubest ← None
@@ -284,8 +300,10 @@ def bidir_dijsktra(adj, w, s, t):
     # the set of unknown (unvisited, or not fully visited) vertices
     H = make_queue(V) #, dist)
     HR = make_queue(VR) # ***unused*** don't need to use VR, since will start with extracting t for GR = adjR
+    proc = set()
+    procR = set()
 
-    while len(H) > 0: # H, set of unknown vertices is not empty:
+    while len(H) > 0: # H, set of unknown vertices is not empty, or while(True)
         # On each iteration we take a vertex outside of R (in H) with the minimal dist-value,
         #  add it to R, and relax all its outgoing edges.
         u = extract_min(H, dist) # [u, d] = extract_min(H)
@@ -293,20 +311,21 @@ def bidir_dijsktra(adj, w, s, t):
         # First node to be extracted will be the source s (since dist[s]==0)
         # Should we stop early if min node u == t (t is moved to known set R before unknown H is exhausted)?
         process_node(u, adj, dist, cost, prev)
+        proc.add(u)
+        if (u in procR): # if u in procR (not (u in HR))
+            return(shortest_path(s, dist, proc, prev, t, distR, prevR, procR))
 
-        if not (u in HR): # if u in procR
-            return(shortest_path())
+        # repeat symmetrically for uR as for v
         uR = extract_min(HR, distR)
-        if not (uR in H): # if uR in proc
-            return(shortest_path())
+        process_node(uR, adjR, distR, costR, prevR)
+        procR.add(uR)
+        if (uR in proc): # if uR in proc (not (uR in H))
+            return(shortest_path(s, dist, proc, prev, t, distR, prevR, procR))
         
-        if u == t: 
-            break # continue untill have processed terminal/target node `t`
-    return dist[t] 
+        # if u == t: # this is the usual Dijkstra finish condition
+            # return dist[t] # continue untill have processed terminal/target node `t`
+    return(-1) # if unreachable
 
-
-
-    return(dist)
 
 def distance(adj, cost, s, t, bidir = False):
     """
@@ -361,7 +380,6 @@ def parse_weighted_digraph_input_to_G_s_and_t(inputtext):
     return (adj, cost, s, t)
 
 def main():
-    debug = True
     readFromStandardInput = False
 
     if readFromStandardInput: # expect weighted digraph followed by s and t
@@ -371,7 +389,10 @@ def main():
 
     # approxInf = math.inf # establish an impossibly far distance, signal upper bound
 
-    print(distance(adj, cost, s, t))
+    print("Dijkstra: ", distance(adj, cost, s, t))
+    print("bidir-Dijkstra: ", distance(adj, cost, s, t, bidir=True))
+
+debug = True
 
 if __name__ == '__main__':
     main()
