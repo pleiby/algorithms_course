@@ -384,15 +384,18 @@ def parse_weighted_digraph_input_to_G_s_and_t(inputtext):
     s, t = data[0] - 1, data[1] - 1
     return (adj, cost, s, t)
 
-def runcase(graphstring, expected=None):
+def runcase(graphstring, expected=None, caselabel=None):
 
     (adj, cost, s, t) = parse_weighted_digraph_input_to_G_s_and_t(graphstring)
 
     # approxInf = math.inf # establish an impossibly far distance, signal upper bound
 
+    # compare the distance result of the standard Dijkstra with the Bi-Directional Dijkstra
     D_rslt = distance(adj, cost, s, t)
     BD_rslt = distance(adj, cost, s, t, bidir=True)
-    D_rslt = -1
+
+    if caselabel:
+        print("Testing case", caselabel)
 
     if debug:
         print("Dijkstra: ", D_rslt)
@@ -401,6 +404,8 @@ def runcase(graphstring, expected=None):
     assert(D_rslt == BD_rslt), "D and BD Did not match"
     if expected:
         assert(D_rslt == expected)
+        if debug:
+            print("Dijkstra and Bidirectional Dijkstra results match, and match expected value")
     return
 
 def main():
@@ -408,10 +413,10 @@ def main():
 
     if readFromStandardInput: # expect weighted digraph followed by s and t
         runcase(sys.stdin.read())
-    else: # expect a named data structure (list) to read from
-        runcase(sample_wdigraph1, expected = 3)
-        runcase(sample_wdigraph2, expected = 6)
-        runcase(sample_wdigraph3, expected = -1)
+    else: # call `runcase` with a named data structure (list) to read from
+        runcase(sample_wdigraph1, expected = 3, caselabel="sample_wdigraph1")
+        runcase(sample_wdigraph2, expected = 6, caselabel="sample_wdigraph2")
+        runcase(sample_wdigraph3, expected = -1, caselabel="sample_wdigraph3")
 
 
 debug = False
