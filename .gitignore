@@ -1,6 +1,7 @@
 .DS_Store*
 settings.json
-/Literature/*
+/Literature/**
 *.pdf
 *.png
 Course3_Algs_on_Graphs/Bellman-Ford*
+Course3_Algs_on_Graphs/week6_adv/Advanced-Shortest-Paths/dist_with_coords/go/*
